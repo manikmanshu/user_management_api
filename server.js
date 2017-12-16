@@ -1,10 +1,9 @@
-const express = require('express');
-const MongoClient = require('mongodb').MongoClient;
-const bodyParser = require('body-parser');
-const app = express();
-const db = require('./config/db');
-
-const port = 8000;
+const express = require('express'),
+    MongoClient = require('mongodb').MongoClient,
+    bodyParser = require('body-parser'),
+    app = express(),
+    db = require('./config/db'),
+    port = 8000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
