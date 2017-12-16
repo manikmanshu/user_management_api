@@ -37,7 +37,7 @@ module.exports = function (app, db) {
                 res.send(err);
             }
             else {
-                res.send(result);
+                res.render('userList.ejs', { users: result });
             }
         });
     });
