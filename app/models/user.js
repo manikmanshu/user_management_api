@@ -8,7 +8,12 @@ var userSchema = mongoose.Schema({
     password:String,
     city: String,
     country: String,
-    phone: String
+    phone: String,
+
+    google: {
+        id: String,
+        token: String
+    }
 });
 
 // generating a hash

@@ -43,6 +43,16 @@ module.exports = function (app, passport) {
         failureRedirect: routeUrls.signup, 
         failureFlash: true // allow flash messages
     }));
+
+    // Redirect to Google login
+    app.get('/auth/google', passport.authenticate('google', { scope : ['profile', 'email'] }));
+
+    // Redirect after Google has authenticated the user
+    app.get('/auth/google/callback', passport.authenticate('google', {
+        successRedirect : '/profile',
+        failureRedirect : '/'
+    }));
+
 };
 
 // route middleware to ensure user is logged in

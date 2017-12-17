@@ -1,7 +1,9 @@
-var LocalStrategy = require('passport-local').Strategy;
+var LocalStrategy = require('passport-local').Strategy,
+    GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 // load up the user model
 var User = require('../app/models/user');
+var configAuth = require('./auth');
 
 module.exports = function (passport) {
 
@@ -100,6 +102,40 @@ module.exports = function (passport) {
                 } else {
                     return done(null, req.user);
                 }
+            });
+        }));
+
+    // Google Strategy
+    passport.use(new GoogleStrategy({
+        clientID: configAuth.googleAuth.clientID,
+        clientSecret: configAuth.googleAuth.clientSecret,
+        callbackURL: configAuth.googleAuth.callbackURL,
+        passReqToCallback: true // allows us to pass in the req from our route (lets us check if a user is logged in or not)
+    },
+        function (req, token, refreshToken, profile, done) {
+            // asynchronous
+            process.nextTick(function () {
+                User.findOne({ 'google.id': profile.id }, function (err, user) {
+                    if (err) {
+                        return done(err);
+                    }
+                    if (user) {
+                        return done(null, user);
+                    } else {
+                        var newUser = new User();
+                        newUser.google.id = profile.id;
+                        newUser.google.token = token;
+                        newUser.name = profile.displayName;
+                        newUser.email = (profile.emails[0].value || '').toLowerCase(); // pull the first email
+
+                        newUser.save(function (err) {
+                            if (err) {
+                                return done(err);
+                            }
+                            return done(null, newUser);
+                        });
+                    }
+                });
             });
         }));
 };
