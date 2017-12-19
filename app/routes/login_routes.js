@@ -1,46 +1,44 @@
-var routeUrls = require('./routeUrls');
-
 module.exports = function (app, passport) {
 
     // show the home page
-    app.get(routeUrls.home, function (req, res) {
+    app.get("/", function (req, res) {
         res.render('index.ejs');
     });
 
     // show profile page
-    app.get(routeUrls.profile, isLoggedIn, function (req, res) {
+    app.get("/profile", isLoggedIn, function (req, res) {
         res.render('profile.ejs', {
             user: req.user
         });
     });
 
     // on user log out
-    app.get(routeUrls.logout, function (req, res) {
+    app.get("/logout", function (req, res) {
         req.logout();
-        res.redirect(routeUrls.home);
+        res.redirect("/");
     });
 
     // show the login form
-    app.get(routeUrls.login, function (req, res) {
+    app.get("/login", function (req, res) {
         res.render('login.ejs', { message: req.flash('loginMessage') });
     });
 
     // process the login form
-    app.post(routeUrls.login, passport.authenticate('local-login', {
-        successRedirect: routeUrls.profile,
-        failureRedirect: routeUrls.login, 
+    app.post("/login", passport.authenticate('local-login', {
+        successRedirect: "/profile",
+        failureRedirect: "/login", 
         failureFlash: true // allow flash messages
     }));
 
     // show the signup form
-    app.get(routeUrls.signup, function (req, res) {
+    app.get("/signup", function (req, res) {
         res.render('signup.ejs', { message: req.flash('signupMessage') });
     });
 
     // process the signup form
-    app.post(routeUrls.signup, passport.authenticate('local-signup', {
-        successRedirect: routeUrls.profile, 
-        failureRedirect: routeUrls.signup, 
+    app.post("/signup", passport.authenticate('local-signup', {
+        successRedirect: "/profile", 
+        failureRedirect: "/signup", 
         failureFlash: true // allow flash messages
     }));
 
@@ -60,5 +58,5 @@ function isLoggedIn(req, res, next) {
     if (req.isAuthenticated())
         return next();
 
-    res.redirect(routeUrls.home);
+    res.redirect("/");
 }
