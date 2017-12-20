@@ -1,19 +1,15 @@
-const ObjectID = require('mongodb').ObjectID,
-    errorMessage = 'An error has occurred',
-    PAGE_SIZE = 2;
+const errorMessage = 'An error has occurred',
+    PAGE_SIZE = 2,
+    User = require('../models/user');
 
-module.exports = function (app, db) {
+module.exports = function (app) {
 
     // Get User
     app.get("/users/:id", (req, res) => {
-        const id = req.params.id,
-            details = { '_id': new ObjectID(id) };
-        db.collection('users').findOne(details, (err, item) => {
-            if (err) {
+        User.findById(req.params.id, (err, user) => {
+            if (err)
                 res.send({ 'error': errorMessage });
-            } else {
-                res.send(item);
-            }
+            res.send(user);
         });
     });
 
@@ -22,83 +18,63 @@ module.exports = function (app, db) {
         const pageNumber = req.params.pageNumber,
             skips = PAGE_SIZE * (pageNumber - 1);
         var totalCount;
-        db.collection('users').count((err, count) => {
-            if (err) {
+        User.count({}, (err, count) => {
+            if (err) 
                 res.send({ 'error': errorMessage });
-            } else {
+            else 
                 totalCount = count;
-            }
         });
-        db.collection('users').find().skip(skips).limit(PAGE_SIZE).toArray(function (err, result) {
-            if (err) {
-                res.send(err);
-            }
-            else {
-                res.send({users: result, totalCount: totalCount, totalPages: Math.round(totalCount / PAGE_SIZE)});
-            }
+        User.find({}, {}, { skip: skips, limit: PAGE_SIZE }, (err, results) => {
+            if (err) 
+                res.send({ 'error': errorMessage });
+            else 
+                res.send({ users: results, totalCount: totalCount, totalPages: Math.round(totalCount / PAGE_SIZE) });
         });
     });
 
     // Create User
     app.post("/users", (req, res) => {
-        const userBody = req.body,
-        user = {
-            name: userBody.name,
-            email: userBody.email,
-            city: userBody.city,
-            country: userBody.country,
-            phone: userBody.phone
-        };
-
-        db.collection('users').findOne({ 'email': user.email }, (err, item) => {
+        const userBody = req.body;
+        User.findOne({ 'email': userBody.email }, (err, item) => {
             if (err) {
                 res.send({ 'error': errorMessage });
-            } else {
-                if(item){
-                    res.send({error: 'User already exists'});
-                }
-                else{
-                    db.collection('users').insertOne(user, (err, result) => {
-                        if (err) {
-                            res.send({ 'error': errorMessage });
-                        } else {
-                            res.send(result.ops[0]);
-                        }
-                    });
-                }   
+            } else if (item) {
+                res.send({ error: 'User already exists' });
             }
-        });      
+            else {
+                User.create(userBody, (err, result) => {
+                    if (err) {
+                        res.send({ 'error': errorMessage });
+                    } else {
+                        res.send(result);
+                    }
+                });
+            }
+        });
     });
 
     // Delete User
     app.delete("/users/:id", (req, res) => {
-        const id = req.params.id,
-            details = { '_id': new ObjectID(id) };
-        db.collection('users').remove(details, (err, item) => {
+        User.findByIdAndRemove(req.params.id, (err, item) => {
             if (err) {
                 res.send({ 'error': errorMessage });
             } else {
-                res.send('User ' + id + ' deleted!');
+                res.send('User ' + req.params.id + ' deleted!');
             }
         });
     });
 
     // Update User
     app.put("/users/:id", (req, res) => {
-        const userBody = req.body,
-            id = req.params.id,
-            details = { '_id': new ObjectID(id) },
-            user = {
-                city: userBody.city,
-                country: userBody.country,
-                phone: userBody.phone
-            };
-        db.collection('users').findOneAndUpdate(details, {$set: user}, (err, result) => {
-            if (err) {
+        const user = {
+            city: req.body.city,
+            country: req.body.country,
+            phone: req.body.phone
+        };
+        User.findByIdAndUpdate(req.params.id, { $set: user }, { new: true }, (err, user) => {
+            if (err)
                 res.send({ 'error': errorMessage });
-            } else {                
-                res.send(user);
-            }
+            res.send(user);
         });
     });
 };

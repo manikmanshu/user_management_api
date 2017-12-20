@@ -1,5 +1,4 @@
 const express = require('express'),
-    MongoClient = require('mongodb').MongoClient,
     bodyParser = require('body-parser'),
     app = express(),
     db = require('./config/db'),
@@ -17,7 +16,7 @@ const express = require('express'),
 // configuration 
 mongoose.connect(db.url, {// connect to database
     useMongoClient: true
-  }); 
+}); 
 
 require('./config/passport')(passport); // pass passport for configuration
 
@@ -41,12 +40,7 @@ app.use(passport.initialize());
 app.use(passport.session()); // persistent login sessions
 app.use(flash()); // use connect-flash for flash messages stored in session
 
-
-MongoClient.connect(db.url, (err, database) => {
-    if (err) return console.log(err);
-    // DB 'myProject' is created already
-    require('./app/routes')(app, database.db('myProject'), passport);
-    app.listen(port, () => {
-        console.log('We are live on ' + port);
-    });
+require('./app/routes')(app, passport);
+app.listen(port, () => {
+    console.log('We are live on ' + port);
 });
